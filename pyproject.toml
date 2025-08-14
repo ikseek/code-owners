@@ -7,10 +7,8 @@ authors = [{name = "AI", email = "ai@example.com"}]
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
 dependencies = [
-    "typer>=0.9",
-    "gitpython>=3.1",
+    "click>=8.0",
     "pathspec>=0.11",
-    "rich>=13.0",
 ]
 
 [project.optional-dependencies]

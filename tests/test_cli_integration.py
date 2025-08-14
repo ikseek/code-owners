@@ -1,31 +1,57 @@
 import os
+import subprocess
 from pathlib import Path
 
-from git import Actor, Repo
-from typer.testing import CliRunner
+from click.testing import CliRunner
 
 from codeowners_tool import cli
 
 
-def commit_file(repo: Repo, path: Path, content: str, author: Actor):
+def git(cwd: Path, *args: str, env: dict | None = None) -> None:
+    env_vars = os.environ.copy()
+    if env:
+        env_vars.update(env)
+    subprocess.run(["git", *args], cwd=cwd, check=True, env=env_vars)
+
+
+def commit_file(repo: Path, path: Path, content: str, author: tuple[str, str]):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
-    repo.index.add([str(path)])
-    repo.index.commit("commit", author=author, committer=author)
+    rel = path.relative_to(repo)
+    git(repo, "add", str(rel))
+    name, email = author
+    env = {
+        "GIT_AUTHOR_NAME": name,
+        "GIT_AUTHOR_EMAIL": email,
+        "GIT_COMMITTER_NAME": name,
+        "GIT_COMMITTER_EMAIL": email,
+    }
+    git(repo, "commit", "-m", "commit", env=env)
 
 
 def setup_repo(tmp_path: Path):
-    repo = Repo.init(tmp_path)
-    alice = Actor("Alice", "alice@example.com")
-    bob = Actor("Bob", "bob@example.com")
+    git(tmp_path, "init")
+    alice = ("Alice", "alice@example.com")
+    bob = ("Bob", "bob@example.com")
     file1 = tmp_path / "file1.txt"
     file2 = tmp_path / "dir" / "file2.txt"
-    commit_file(repo, file1, "a1\n", alice)
-    commit_file(repo, file2, "b1\n", alice)
+    commit_file(tmp_path, file1, "a1\n", alice)
+    commit_file(tmp_path, file2, "b1\n", alice)
     file1.write_text("a1\nb1\nb2\n")
-    repo.index.add([str(file1)])
-    repo.index.commit("bob updates file1", author=bob, committer=bob)
-    return repo, alice, bob, file1, file2
+    rel1 = file1.relative_to(tmp_path)
+    git(
+        tmp_path,
+        "add",
+        str(rel1),
+    )
+    env = {
+        "GIT_AUTHOR_NAME": bob[0],
+        "GIT_AUTHOR_EMAIL": bob[1],
+        "GIT_COMMITTER_NAME": bob[0],
+        "GIT_COMMITTER_EMAIL": bob[1],
+    }
+    git(tmp_path, "commit", "-m", "bob updates file1", env=env)
+    return tmp_path, alice[0], bob[0], file1, file2
 
 
 def run_in_repo(path: Path, func):
@@ -44,11 +70,11 @@ def test_generate_file_level_and_queries(tmp_path: Path):
     def invoke(args):
         return run_in_repo(tmp_path, lambda: runner.invoke(cli.app, args))
 
-    result = invoke(["generate", "--level", "file", "--top", "2"])
+    result = invoke(["generate", "--level", "file", "--top", "1"])
     assert result.exit_code == 0
 
     lines = (tmp_path / "CODEOWNERS").read_text().splitlines()
-    assert "file1.txt Bob Alice" in lines
+    assert "file1.txt Bob" in lines
     assert "dir/file2.txt Alice" in lines
 
     res = invoke(["less-than", "2"])

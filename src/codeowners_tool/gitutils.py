@@ -3,30 +3,33 @@ from __future__ import annotations
 from collections import Counter
 from pathlib import Path
 from typing import Iterable
-
-from git import Repo
-
-
-def get_repo(root: Path | None = None) -> Repo:
-    return Repo(root or Path.cwd(), search_parent_directories=True)
+import subprocess
 
 
 def list_tracked_files(root: Path) -> Iterable[Path]:
-    repo = get_repo(root)
-    files = repo.git.ls_files().splitlines()
-    return [root / f for f in files]
+    result = subprocess.run(
+        ["git", "-C", str(root), "ls-files"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return [root / f for f in result.stdout.splitlines()]
 
 
 def blame_file(path: Path) -> Counter:
-    repo = get_repo(path.parent)
     counter: Counter[str] = Counter()
     try:
-        blamed = repo.blame("HEAD", str(path))
-    except Exception:
+        result = subprocess.run(
+            ["git", "-C", str(path.parent), "blame", "--line-porcelain", str(path)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
         return counter
-    for commit, lines in blamed:
-        name = commit.author.name
-        counter[name] += len(lines)
+    for line in result.stdout.splitlines():
+        if line.startswith("author "):
+            counter[line[7:]] += 1
     return counter
 
 
