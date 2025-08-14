@@ -26,7 +26,12 @@ def add(pattern: str, owners: List[str]):
 
 
 @app.command()
-@click.option("--level", type=click.Choice(["file", "dir"], case_sensitive=False), default="file", help="file or dir")
+@click.option(
+    "--level",
+    type=click.Choice(["file", "dir"], case_sensitive=False),
+    default="file",
+    help="file or dir",
+)
 @click.option("--top", type=int, default=1, help="Top N owners for each entry")
 def generate(level: str, top: int):
     """Generate CODEOWNERS from git history."""
