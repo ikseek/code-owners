@@ -10,8 +10,6 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-      - name: Install dependencies
-        run: pip install .[dev]
       - name: Lint
         run: ./scripts/lint.sh
       - name: Run tests
