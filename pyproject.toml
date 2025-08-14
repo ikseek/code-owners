@@ -1,0 +1,24 @@
+[project]
+name = "codeowners-tool"
+version = "0.1.0"
+description = "CLI to manage GitHub CODEOWNERS file"
+readme = "README.md"
+authors = [{name = "AI", email = "ai@example.com"}]
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.9",
+    "gitpython>=3.1",
+    "pathspec>=0.11",
+    "rich>=13.0",
+]
+
+[project.scripts]
+codeowners-tool = "codeowners_tool.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+managed = true
