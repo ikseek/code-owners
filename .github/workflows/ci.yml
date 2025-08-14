@@ -12,7 +12,7 @@ jobs:
           python-version: '3.x'
       - name: Install dependencies
         run: pip install .[dev]
-      - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure
+      - name: Lint
+        run: ./scripts/lint.sh
       - name: Run tests
         run: pytest

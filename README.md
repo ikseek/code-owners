@@ -11,3 +11,14 @@ Use [uv](https://github.com/astral-sh/uv) to install or build the package.
 ```
 codeowners-tool --help
 ```
+
+## Development
+
+Enable the git hooks to run formatting and lint checks on each commit:
+
+```
+git config core.hooksPath githooks
+```
+
+The hook runs `scripts/lint.sh`, which verifies Ruff formatting and static
+analysis. The same script is used in CI.
