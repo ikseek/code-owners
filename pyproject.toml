@@ -13,6 +13,13 @@ dependencies = [
     "rich>=13.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pre-commit",
+    "ruff",
+]
+
 [project.scripts]
 codeowners-tool = "codeowners_tool.cli:app"
 
@@ -22,3 +29,8 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 managed = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["src", "tests"]

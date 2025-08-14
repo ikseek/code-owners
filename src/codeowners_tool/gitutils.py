@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
-from typing import Dict, Iterable
+from typing import Iterable
 
 from git import Repo
 
